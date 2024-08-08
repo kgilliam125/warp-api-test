@@ -19,7 +19,6 @@ async fn main() {
 
     let db = model::init_todo_db();
 
-    // let todo_router = warp::path!("api" / "todos");
     let todo_router = filters::todos(db);
 
     // let cors = warp::cors()
@@ -52,7 +51,8 @@ mod filters {
     pub fn todos(db: DB) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         list_todos(db.clone())
             .or(create_todo(db.clone()))
-            // .or(update_todo(db))
+            .or(find_single_todo(db.clone()))
+            .or(update_todo(db))
             // .or(delete_todo(db))
     }
 
@@ -64,12 +64,27 @@ mod filters {
             .and_then(handler::todo_list_handler)
     }
 
+    pub fn find_single_todo(db: DB) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+        warp::path!("api" / "todos" / String)
+            .and(warp::get())
+            .and(with_db(db))
+            .and_then(handler::find_single_todo_handler)
+    }
+
     pub fn create_todo(db: DB) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         warp::path!("api" / "todos")
             .and(warp::post())
             .and(warp::body::json())
             .and(with_db(db))
             .and_then(handler::create_todo_handler)
+    }
+
+    pub fn update_todo(db: DB) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+        warp::path!("api" / "todos" / String)
+            .and(warp::put())
+            .and(warp::body::json())
+            .and(with_db(db))
+            .and_then(handler::update_todo_handler)
     }
 
     fn with_db(db: DB) -> impl Filter<Extract = (DB,), Error = std::convert::Infallible> + Clone {

@@ -79,3 +79,57 @@ pub async fn create_todo_handler(mut body: Todo, db: DB) -> WebResult<impl Reply
     Ok(with_status(json(&json_response), StatusCode::CREATED))
 }
 
+pub async fn find_single_todo_handler(id: String, db: DB) -> WebResult<impl Reply> {
+    let todos = db.lock().await;
+
+    let todo = todos.iter().find(|t| t.id.as_ref().unwrap() == &id);
+
+    match todo {
+        Some(todo) => {
+            let json_response = SingleTodoResponse {
+                status: "success".to_string(),
+                data: TodoData { todo: todo.clone() },
+            };
+
+            Ok(with_status(json(&json_response), StatusCode::OK))
+        }
+        None => {
+            let error_response = GenericResponse {
+                status: "fail".to_string(),
+                message: format!("Todo with id: '{}' not found", id),
+            };
+
+            Ok(with_status(json(&error_response), StatusCode::NOT_FOUND))
+        }
+    }
+}
+
+pub async fn update_todo_handler(id: String, body: Todo, db: DB) -> WebResult<impl Reply> {
+    let mut vec = db.lock().await;
+
+    let todo = vec.iter_mut().find(|t| t.id.as_ref().unwrap() == &id);
+
+    match todo {
+        Some(todo) => {
+            todo.title = body.title;
+            todo.content = body.content;
+            todo.completed = body.completed;
+            todo.updated_at = Some(Utc::now());
+
+            let json_response = SingleTodoResponse {
+                status: "success".to_string(),
+                data: TodoData { todo: todo.clone() },
+            };
+
+            Ok(with_status(json(&json_response), StatusCode::OK))
+        }
+        None => {
+            let error_response = GenericResponse {
+                status: "fail".to_string(),
+                message: format!("Todo with id: '{}' not found", id),
+            };
+
+            Ok(with_status(json(&error_response), StatusCode::NOT_FOUND))
+        }
+    }
+}
