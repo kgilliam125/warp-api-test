@@ -52,8 +52,8 @@ mod filters {
         list_todos(db.clone())
             .or(create_todo(db.clone()))
             .or(find_single_todo(db.clone()))
-            .or(update_todo(db))
-            // .or(delete_todo(db))
+            .or(update_todo(db.clone()))
+            .or(delete_todo(db.clone()))
     }
 
     pub fn list_todos(db: DB) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
@@ -85,6 +85,13 @@ mod filters {
             .and(warp::body::json())
             .and(with_db(db))
             .and_then(handler::update_todo_handler)
+    }
+
+    pub fn delete_todo(db: DB) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+        warp::path!("api" / "todos" / String)
+            .and(warp::delete())
+            .and(with_db(db))
+            .and_then(handler::delete_todo_handler)
     }
 
     fn with_db(db: DB) -> impl Filter<Extract = (DB,), Error = std::convert::Infallible> + Clone {

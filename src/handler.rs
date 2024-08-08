@@ -133,3 +133,30 @@ pub async fn update_todo_handler(id: String, body: Todo, db: DB) -> WebResult<im
         }
     }
 }
+
+pub async fn delete_todo_handler(id: String, db: DB) -> WebResult<impl Reply> {
+    let mut vec = db.lock().await;
+
+    let todo = vec.iter().position(|t| t.id.as_ref().unwrap() == &id);
+
+    match todo {
+        Some(index) => {
+            vec.remove(index);
+
+            let json_response = GenericResponse {
+                status: "success".to_string(),
+                message: "Todo deleted successfully".to_string(),
+            };
+
+            Ok(with_status(json(&json_response), StatusCode::OK))
+        }
+        None => {
+            let error_response = GenericResponse {
+                status: "fail".to_string(),
+                message: format!("Todo with id: '{}' not found", id),
+            };
+
+            Ok(with_status(json(&error_response), StatusCode::NOT_FOUND))
+        }
+    }
+}

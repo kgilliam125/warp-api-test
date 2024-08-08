@@ -7,7 +7,7 @@ POST http://localhost:3030/api/todos
 content-type: application/json
 
 {
-    "title": "Test Todo",
+    "title": "Test Todo 2",
     "content": "Wed, 21 Oct 2015 18:27:50 GMT"
 }
 
@@ -16,11 +16,11 @@ GET http://localhost:3030/api/todos
 content-type: application/json
 
 ### Test Case 3 - Copy the id from above response
-GET http://localhost:3030/api/todos/ba88d18c-aa99-4271-8410-bd3ed2fdf3de
+GET http://localhost:3030/api/todos/533c17fc-acdb-4aeb-a027-58bcd27824c9
 content-type: application/json
 
 ### Test Case 4 - Copy the id from above response
-PUT http://localhost:3030/api/todos/ba88d18c-aa99-4271-8410-bd3ed2fdf3de
+PUT http://localhost:3030/api/todos/533c17fc-acdb-4aeb-a027-58bcd27824c9
 content-type: application/json
 
 {
@@ -28,3 +28,7 @@ content-type: application/json
     "completed": true,
     "content": "Wed, 21 Oct 2015 18:27:50 GMT"
 }
+
+### Test Case 5 - Copy the id from above response
+DELETE http://localhost:3030/api/todos/533c17fc-acdb-4aeb-a027-58bcd27824c9
+content-type: application/json
