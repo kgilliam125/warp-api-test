@@ -33,7 +33,49 @@ pub async fn todo_list_handler(opts: QueryOptions, db: DB) -> WebResult<impl Rep
         results: todos.len(),
         todos
     };
-    
+
     Ok(json(&json_response))
+}
+
+pub async fn create_todo_handler(mut body: Todo, db: DB) -> WebResult<impl Reply> {
+    if body.title.is_empty() || body.title.is_empty() {
+        let error_response = GenericResponse {
+            status: "fail".to_string(),
+            message: "Title and Body cannot be empty".to_string()
+        };
+
+        return Ok(with_status(json(&error_response), StatusCode::BAD_REQUEST))
+    }
+
+    let mut vec = db.lock().await;
+
+    for todo in vec.iter() {
+        if todo.title == body.title {
+            let error_response = GenericResponse {
+                status: "fail".to_string(),
+                message: format!("Todo with title: '{}' already exists", todo.title)
+            };
+
+            return Ok(with_status(json(&error_response), StatusCode::CONFLICT))
+        }
+    }
+
+    let id = Uuid::new_v4().to_string();
+    let now = Utc::now();
+
+    body.id = Some(id);
+    body.completed = Some(false);
+    body.created_at = Some(now);
+    body.updated_at = Some(now);
+
+    let todo = body.to_owned();
+    vec.push(todo);
+
+    let json_response = SingleTodoResponse {
+        status: "success".to_string(),
+        data: TodoData { todo: body },
+    };
+
+    Ok(with_status(json(&json_response), StatusCode::CREATED))
 }
 
